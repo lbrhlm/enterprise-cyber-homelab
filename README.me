@@ -2,6 +2,35 @@ Enterprise Cyber Homelab
 Just a little project!
 A virtual cyber lab environment implementing network segmentation across VMnet subnets, Active Directory Domain Services, Windows event logging, and Wazuh SIEM threat detection against isolated DMZ targets.
 
+Structure Diagram
+
+                                    ┌────────────────────────┐                      
+                                    │  [ Kali Linux Host ]   │                  
+                                    |      Lenovo P14s       │                     
+                                    └────────────────────────┘  
+                                                │
+                                    (VMnet8: VMware NAT Engine)
+                                                │
+                                     ┌──────────▼──────────┐
+                                     │ pfSense VM Firewall │
+                                     └─────┬────────────┬──┘
+              VMnet2 (Corporate LAN)       │            │     VMnet3 (OPT1 DMZ)
+              [10.0.10.0/24 Subnet]        │            │    [10.0.20.0/24 Subnet]
+      ┌────────────────────────────────────┤            └────────────────────────┐
+      │                                    │                                     │
+┌─────┴──────────────────┐      ┌──────────┴─────────────┐             ┌─────────┴────────────┐
+│ Windows Server 2022    │─ ── ─│  Windows 11 Enterprise │  <── ── ──  │   Metasploitable 2   │
+│ (Active Directory DC)  │      │  (Domain Workstation)  │   Traffic   │ (Unpatched Target)   │
+└────────────┬───────────┘      └──────────┬─────────────┘   Blocked   └──────────────────────┘
+             |                             │
+             |                             |
+             |                             │                                                
+             |                  ┌──────────┴─────────────┐                      
+             |                  │ Ubuntu Server 24.04    │                      
+             └─ ── ── ── ── ── ─| (Wazuh SIEM Manager)   │                     
+                                └────────────────────────┘   
+
+
 
 Project Overview & Vision
 This repository documents the architecture, configuration, security monitoring, and threat emulation of a multi-subnet corporate virtual network built inside VMware Workstation Pro on a Kali Linux host.
@@ -35,31 +64,4 @@ DMZ Target Endpoint: Metasploitable 2
 
 
 
-Structure Diagram
 
-                                    ┌────────────────────────┐                      
-                                    │  [ Kali Linux Host ]   │                  
-                                    |      Lenovo P14s       │                     
-                                    └────────────────────────┘  
-                                                │
-                                    (VMnet8: VMware NAT Engine)
-                                                │
-                                     ┌──────────▼──────────┐
-                                     │ pfSense VM Firewall │
-                                     └─────┬────────────┬──┘
-              VMnet2 (Corporate LAN)       │            │     VMnet3 (OPT1 DMZ)
-              [10.0.10.0/24 Subnet]        │            │    [10.0.20.0/24 Subnet]
-      ┌────────────────────────────────────┤            └────────────────────────┐
-      │                                    │                                     │
-┌─────┴──────────────────┐      ┌──────────┴─────────────┐             ┌─────────┴────────────┐
-│ Windows Server 2022    │─ ── ─│  Windows 11 Enterprise │  <── ── ──  │   Metasploitable 2   │
-│ (Active Directory DC)  │      │  (Domain Workstation)  │   Traffic   │ (Unpatched Target)   │
-└────────────┬───────────┘      └──────────┬─────────────┘   Blocked   └──────────────────────┘
-             |                             │
-             |                             |
-             |                             │                                                
-             |                  ┌──────────┴─────────────┐                      
-             |                  │ Ubuntu Server 24.04    │                      
-             └─ ── ── ── ── ── ─| (Wazuh SIEM Manager)   │                     
-                                └────────────────────────┘   
-                              
