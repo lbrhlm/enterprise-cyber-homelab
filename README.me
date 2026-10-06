@@ -1,0 +1,65 @@
+Enterprise Cyber Homelab
+Just a little project!
+A virtual cyber lab environment implementing network segmentation across VMnet subnets, Active Directory Domain Services, Windows event logging, and Wazuh SIEM threat detection against isolated DMZ targets.
+
+
+Project Overview & Vision
+This repository documents the architecture, configuration, security monitoring, and threat emulation of a multi-subnet corporate virtual network built inside VMware Workstation Pro on a Kali Linux host.
+
+The objective of this project is to bridge classroom theory and real-world production IT environments by simulating:
+
+Network Defense & Routing: Stateful firewall filtering, DHCP authority, and double-NAT subnets.
+
+Identity & Access Management: Active Directory Domain Services (AD DS), Group Policy Objects (GPOs), and local DNS resolution.
+
+Threat Telemetry & Detection: Endpoint process tracking via Sysmon and centralized log ingestion via Wazuh SIEM.
+
+Offensive Security & Emulation: Isolated DMZ target subnets for vulnerability scanning and attack simulation without risking corporate infrastructure.
+
+
+
+Infrastructure & Specs
+Host Machine: Lenovo ThinkPad P14s (Intel i7 10th Gen, 32 GB RAM, 512 GB NVMe SSD)
+
+Host OS & Hypervisor: Kali Linux Rolling | VMware Workstation Pro
+
+Edge Firewall / Gateway: pfSense Community Edition
+
+Domain Controller: Windows Server 2022 (corp.local)
+
+Corporate Client: Windows 11 Enterprise Evaluation
+
+Telemetry & SIEM Pipeline: Ubuntu Server 26.04 LTS + Wazuh SIEM Stack
+
+DMZ Target Endpoint: Metasploitable 2 
+
+
+
+Structure Diagram
+
+                                    ┌────────────────────────┐                      
+                                    │  [ Kali Linux Host ]   │                  
+                                    |      Lenovo P14s       │                     
+                                    └────────────────────────┘  
+                                                │
+                                    (VMnet8: VMware NAT Engine)
+                                                │
+                                     ┌──────────▼──────────┐
+                                     │ pfSense VM Firewall │
+                                     └─────┬────────────┬──┘
+              VMnet2 (Corporate LAN)       │            │     VMnet3 (OPT1 DMZ)
+              [10.0.10.0/24 Subnet]        │            │    [10.0.20.0/24 Subnet]
+      ┌────────────────────────────────────┤            └────────────────────────┐
+      │                                    │                                     │
+┌─────┴──────────────────┐      ┌──────────┴─────────────┐             ┌─────────┴────────────┐
+│ Windows Server 2022    │─ ── ─│  Windows 11 Enterprise │  <── ── ──  │   Metasploitable 2   │
+│ (Active Directory DC)  │      │  (Domain Workstation)  │   Traffic   │ (Unpatched Target)   │
+└────────────┬───────────┘      └──────────┬─────────────┘   Blocked   └──────────────────────┘
+             |                             │
+             |                             |
+             |                             │                                                
+             |                  ┌──────────┴─────────────┐                      
+             |                  │ Ubuntu Server 24.04    │                      
+             └─ ── ── ── ── ── ─| (Wazuh SIEM Manager)   │                     
+                                └────────────────────────┘   
+                              
