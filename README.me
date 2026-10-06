@@ -2,7 +2,8 @@ Enterprise Cyber Homelab
 Just a little project!
 A virtual cyber lab environment implementing network segmentation across VMnet subnets, Active Directory Domain Services, Windows event logging, and Wazuh SIEM threat detection against isolated DMZ targets.
 
-Structure Diagram
+                                    
+          Structure Diagram
 
                                     ┌────────────────────────┐                      
                                     │  [ Kali Linux Host ]   │                  
@@ -45,6 +46,14 @@ Threat Telemetry & Detection: Endpoint process tracking via Sysmon and centraliz
 
 Offensive Security & Emulation: Isolated DMZ target subnets for vulnerability scanning and attack simulation without risking corporate infrastructure.
 
+|--------|---------------|-------------------|----------------------------------------------------------------------------|
+|vSwitch | Subnet Zone   | CIDR Block        | Roles & Services                                                           |
+|--------|---------------|-------------------|----------------------------------------------------------------------------|
+| VMnet8 | WAN Gateway   | 192.168.182.0/24  | VMware NAT Engine (Internet Uplink)                                        |
+| VMnet2 | Corporate LAN | 10.0.10.0/24      | pfSense (.1), AD DC (.10), Wazuh SIEM (.20), Win 11 Client (.100-200 DHCP) |
+| VMnet3 | OPT1 / DMZ    | 10.0.20.0/24      | Isolated Target Subnet (Metasploitable 10.0.20.x)                          |
+|--------|---------------|-------------------|----------------------------------------------------------------------------|
+
 
 
 Infrastructure & Specs
@@ -61,6 +70,26 @@ Corporate Client: Windows 11 Enterprise Evaluation
 Telemetry & SIEM Pipeline: Ubuntu Server 26.04 LTS + Wazuh SIEM Stack
 
 DMZ Target Endpoint: Metasploitable 2 
+
+
+
+Troubleshooting and debugging
+A running log of technical issues, network collisions, and debugging sessions I encountered while constructing this virtual lab:
+
+1. Host Virtual Interface ARP Collision and Gateway IP Allocation
+Issue: My Ubuntu server VM could ping the Domain Controller, pfSense default gateway, and even my Host Laptop - but couldn't reach any external IP addresses, despite all the other LAN endpoints having full network connectivity.
+
+Root Cause Analysis: Upon my network setup, I had ticked 'Connect a host virtual adapter to this network ', which creates a vNIC with an IP address on the host, allowing the host to reach the VMnet through SSH and telnet without going through and being blocked by the pfSense firewall / virtual router.
+Unfortunately, the auto-assigned IP (10.0.10.1) of my host laptops's vNIC collided with pfSense's own IP address, resulting in a race between pfSense and the host to answer the Ubuntu server's ARP request. The second ARP response overwrote the first, and so my host laptop's MAC address was registered in Ubuntu's ARP cache table - and since the host laptop wasn't NAT configured to forward traffic, external pings failed.
+
+Resolution: I navigated to VMware Virtual Network Editor, unchecked the host virtual adapter connection on VMnet2 (or reconfigured it to non-conflicting IP 10.0.10.254), flushed Ubuntu's ARP cache using the command ip -s -s neigh flush all, and the default route through pfSense was instantly restored.
+
+2. Hypervisor Memory Allocation Overhead and Wazuh Installation Prerequisites
+Issue: I provisioned a 6 GB RAM allocation inside VMware Workstation, which supposedly matched the Wazuh minimum hardware requirements - yet caused the Wazuh SIEM installation script to fail continuously on the Ubuntu.
+
+Root Cause Analysis: Assigning 6.0 GB of RAM in VMware Workstation did not translate to 6 GB of usable memory inside the guest Linux kernel. Hardware reservations and other factors resulted in not enough RAM to support Wazuh. Because the OpenSearch Indexer component of Wazuh enforces strict memory thresholds, overlooking memory tax caused the automated setup script to fail.
+
+Resolution: I adjusted the guest virtual machine settings in VMware Workstation to assign 8 GB of RAM, ensuring the guest Linux kernel recognized sufficient usable memory to meet Wazuh installation requirements.
 
 
 
