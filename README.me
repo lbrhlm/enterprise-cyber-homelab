@@ -79,10 +79,11 @@ A running log of technical issues, network collisions, and debugging sessions I 
 1. Host Virtual Interface ARP Collision and Gateway IP Allocation
 Issue: My Ubuntu server VM could ping the Domain Controller, pfSense default gateway, and even my Host Laptop - but couldn't reach any external IP addresses, despite all the other LAN endpoints having full network connectivity.
 
-Root Cause Analysis: Upon my network setup, I had ticked 'Connect a host virtual adapter to this network ', which creates a vNIC with an IP address on the host, allowing the host to reach the VMnet through SSH and telnet without going through and being blocked by the pfSense firewall / virtual router.
+Root Cause Analysis: Upon my network setup, I had ticked 'Connect a host virtual adapter to this network', which creates a vNIC with an IP address on the host, allowing the host to reach the VMnet through SSH and telnet without going through and being blocked by the pfSense firewall / virtual router.
 Unfortunately, the auto-assigned IP (10.0.10.1) of my host laptops's vNIC collided with pfSense's own IP address, resulting in a race between pfSense and the host to answer the Ubuntu server's ARP request. The second ARP response overwrote the first, and so my host laptop's MAC address was registered in Ubuntu's ARP cache table - and since the host laptop wasn't NAT configured to forward traffic, external pings failed.
 
 Resolution: I navigated to VMware Virtual Network Editor, unchecked the host virtual adapter connection on VMnet2 (or reconfigured it to non-conflicting IP 10.0.10.254), flushed Ubuntu's ARP cache using the command ip -s -s neigh flush all, and the default route through pfSense was instantly restored.
+
 
 2. Hypervisor Memory Allocation Overhead and Wazuh Installation Prerequisites
 Issue: I provisioned a 6 GB RAM allocation inside VMware Workstation, which supposedly matched the Wazuh minimum hardware requirements - yet caused the Wazuh SIEM installation script to fail continuously on the Ubuntu.
