@@ -90,8 +90,11 @@ Issue: I provisioned a 6 GB RAM allocation inside VMware Workstation, which supp
 
 Root Cause Analysis: Assigning 6.0 GB of RAM in VMware Workstation did not translate to 6 GB of usable memory inside the guest Linux kernel. Hardware reservations and other factors resulted in not enough RAM to support Wazuh. Because the OpenSearch Indexer component of Wazuh enforces strict memory thresholds, overlooking memory tax caused the automated setup script to fail.
 
-Resolution: I adjusted the guest virtual machine settings in VMware Workstation to assign 8 GB of RAM, ensuring the guest Linux kernel recognized sufficient usable memory to meet Wazuh installation requirements.
+Resolution: I adjusted the guest virtual machine settings in VMware Workstation to assign 9 GB of RAM, ensuring the guest Linux kernel recognized sufficient usable memory to meet Wazuh installation requirements.
 
+
+3. Wazuh agent installation
+This one is a bit silly, but it really drove me crazy. I spent a long time troubleshooting the powershell script and verifying VM connection to the Wazuh package server. It turns out I simply wasn't running powershell as admin, so it didn't have the permissions to set the device as a Wazuh endpoint.
 
 
 
